@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+        main {
+            padding: 2rem;
+            max-width: 600px;
+            margin: 2rem auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 0.7rem;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        #results {
+            margin-top: 2rem;
+        }
+        .recipe {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .recipe img {
+            max-width: 100px;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .recipe button {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .recipe button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FridgeFinds Recipe Finder</h1>
+    </header>
+    <main>
+        <h2>Find Recipes</h2>
+        <form id="recipeForm">
+            <label for="query">Search Query:</label>
+            <input type="text" id="query" name="query" placeholder="e.g., pasta, chicken">
+
+
+            <label for="cuisine">Cuisine:</label>
+            <input type="text" id="cuisine" name="cuisine" placeholder="e.g., italian, mexican">
+
+
+            <label for="diet">Diet:</label>
+            <input type="text" id="diet" name="diet" placeholder="e.g., vegetarian, vegan">
+
+
+            <label for="intolerances">Intolerances:</label>
+            <input type="text" id="intolerances" name="intolerances" placeholder="e.g., gluten, dairy">
+
+
+            <label for="includeIngredients">Include Ingredients:</label>
+            <input type="text" id="includeIngredients" name="includeIngredients" placeholder="e.g., tomato, cheese">
+
+
+            <label for="excludeIngredients">Exclude Ingredients:</label>
+            <input type="text" id="excludeIngredients" name="excludeIngredients" placeholder="e.g., eggs, nuts">
+
+
+            <button type="submit">Find Recipes</button>
+        </form>
+        <div id="results"></div>
+    </main>
+    <script>
+        //const API_URL = "https://api.spoonacular.com/recipes/complexSearch";
+        //const RECIPE_DETAILS_URL = "https://api.spoonacular.com/recipes";
+        //const API_KEY = "fce465a87f244b15a5a0a98fab286b79"; // Replace with your Spoonacular API key
+
+
+        document.getElementById("recipeForm").addEventListener("submit", async function(event) {
+            event.preventDefault(); // Prevent the form from refreshing the page
+
+
+            const query = document.getElementById("query").value;
+            const cuisine = document.getElementById("cuisine").value;
+            const diet = document.getElementById("diet").value;
+            const intolerances = document.getElementById("intolerances").value;
+            const includeIngredients = document.getElementById("includeIngredients").value;
+            const excludeIngredients = document.getElementById("excludeIngredients").value;
+
+
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "<p>Loading recipes...</p>";
+
+
+            try {
+                const url = `${API_URL}?${query ? `query=${encodeURIComponent(query)}&` : ""}cuisine=${encodeURIComponent(cuisine)}&diet=${encodeURIComponent(diet)}&intolerances=${encodeURIComponent(intolerances)}&includeIngredients=${encodeURIComponent(includeIngredients)}&excludeIngredients=${encodeURIComponent(excludeIngredients)}&instructionsRequired=true&addRecipeInformation=true&apiKey=${API_KEY}`;
+                const response = await fetch(url);
+
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch recipes");
+                }
+
+
+                const recipes = await response.json();
+                resultsDiv.innerHTML = ""; // Clear loading message
+
+
+                if (recipes.results.length === 0) {
+                    resultsDiv.innerHTML = "<p>No recipes found for the given criteria.</p>";
+                } else {
+                    recipes.results.forEach(recipe => {
+                        const recipeDiv = document.createElement("div");
+                        recipeDiv.classList.add("recipe");
+
+
+                        recipeDiv.innerHTML = `
+                            <h3>${recipe.title}</h3>
+                            <img src="${recipe.image}" alt="${recipe.title}">
+                            <p><strong>Ready in:</strong> ${recipe.readyInMinutes} minutes</p>
+                            <p><strong>Servings:</strong> ${recipe.servings}</p>
+                            <button onclick="fetchRecipeDetails(${recipe.id})">View Details</button>
+                        `;
+                        resultsDiv.appendChild(recipeDiv);
+                    });
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+
+
+        async function fetchRecipeDetails(recipeId) {
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "<p>Loading recipe details...</p>";
+
+
+            try {
+                const response = await fetch(`${RECIPE_DETAILS_URL}/${recipeId}/information?apiKey=${API_KEY}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch recipe details");
+                }
+
+
+                const recipe = await response.json();
+                resultsDiv.innerHTML = `
+                    <h2>${recipe.title}</h2>
+                    <img src="${recipe.image}" alt="${recipe.title}">
+                    <p><strong>Servings:</strong> ${recipe.servings}</p>
+                    <p><strong>Ready in:</strong> ${recipe.readyInMinutes} minutes</p>
+                    <p><strong>Instructions:</strong> ${recipe.instructions || "No instructions available."}</p>
+                    <button onclick="window.location.reload()">Go Back</button>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
