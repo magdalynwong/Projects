@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,24 +92,36 @@
             <input type="text" id="query" name="query" placeholder="e.g., pasta, chicken">
 
 
+
+
             <label for="cuisine">Cuisine:</label>
             <input type="text" id="cuisine" name="cuisine" placeholder="e.g., italian, mexican">
+
+
 
 
             <label for="diet">Diet:</label>
             <input type="text" id="diet" name="diet" placeholder="e.g., vegetarian, vegan">
 
 
+
+
             <label for="intolerances">Intolerances:</label>
             <input type="text" id="intolerances" name="intolerances" placeholder="e.g., gluten, dairy">
+
+
 
 
             <label for="includeIngredients">Include Ingredients:</label>
             <input type="text" id="includeIngredients" name="includeIngredients" placeholder="e.g., tomato, cheese">
 
 
+
+
             <label for="excludeIngredients">Exclude Ingredients:</label>
             <input type="text" id="excludeIngredients" name="excludeIngredients" placeholder="e.g., eggs, nuts">
+
+
 
 
             <button type="submit">Find Recipes</button>
@@ -115,21 +129,8 @@
         <div id="results"></div>
     </main>
     <script>
-        //const API_URL = "https://api.spoonacular.com/recipes/complexSearch";
-        //const RECIPE_DETAILS_URL = "https://api.spoonacular.com/recipes";
-        //const API_KEY = "fce465a87f244b15a5a0a98fab286b79"; // Replace with your Spoonacular API key
-
-
         document.getElementById("recipeForm").addEventListener("submit", async function(event) {
             event.preventDefault(); // Prevent the form from refreshing the page
-
-
-            const query = document.getElementById("query").value;
-            const cuisine = document.getElementById("cuisine").value;
-            const diet = document.getElementById("diet").value;
-            const intolerances = document.getElementById("intolerances").value;
-            const includeIngredients = document.getElementById("includeIngredients").value;
-            const excludeIngredients = document.getElementById("excludeIngredients").value;
 
 
             const resultsDiv = document.getElementById("results");
@@ -137,17 +138,29 @@
 
 
             try {
-                const url = `${API_URL}?${query ? `query=${encodeURIComponent(query)}&` : ""}cuisine=${encodeURIComponent(cuisine)}&diet=${encodeURIComponent(diet)}&intolerances=${encodeURIComponent(intolerances)}&includeIngredients=${encodeURIComponent(includeIngredients)}&excludeIngredients=${encodeURIComponent(excludeIngredients)}&instructionsRequired=true&addRecipeInformation=true&apiKey=${API_KEY}`;
+                const params = new URLSearchParams();
+                const formElements = event.target.elements;
+
+                // Iterate over form elements and append to params if they have a value
+                ['query', 'cuisine', 'diet', 'intolerances', 'includeIngredients', 'excludeIngredients'].forEach(name => {
+                    const value = formElements[name].value.trim();
+                    if (value) {
+                        params.append(name, value);
+                    }
+                });
+
+                const url = `/api/search?${params.toString()}`;
                 const response = await fetch(url);
 
 
                 if (!response.ok) {
-                    throw new Error("Failed to fetch recipes");
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Failed to fetch recipes");
                 }
 
 
                 const recipes = await response.json();
-                resultsDiv.innerHTML = ""; // Clear loading message
+                resultsDiv.innerHTML = ""; 
 
 
                 if (recipes.results.length === 0) {
@@ -180,11 +193,11 @@
 
 
             try {
-                const response = await fetch(`${RECIPE_DETAILS_URL}/${recipeId}/information?apiKey=${API_KEY}`);
+                const response = await fetch(`/api/details/${recipeId}`);
                 if (!response.ok) {
-                    throw new Error("Failed to fetch recipe details");
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Failed to fetch recipe details");
                 }
-
 
                 const recipe = await response.json();
                 resultsDiv.innerHTML = `
@@ -202,5 +215,3 @@
     </script>
 </body>
 </html>
-
-
