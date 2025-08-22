@@ -6,80 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe Finder</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-        }
-        header {
-            background-color: #333;
-            color: #fff;
-            padding: 1rem;
-            text-align: center;
-        }
-        main {
-            padding: 2rem;
-            max-width: 600px;
-            margin: 2rem auto;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-        input[type="text"], select {
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 0.7rem;
-            background-color: #333;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #555;
-        }
-        #results {
-            margin-top: 2rem;
-        }
-        .recipe {
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-        }
-        .recipe img {
-            max-width: 100px;
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        .recipe button {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            background-color: #007BFF;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .recipe button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
@@ -91,38 +18,20 @@
             <label for="query">Search Query:</label>
             <input type="text" id="query" name="query" placeholder="e.g., pasta, chicken">
 
-
-
-
             <label for="cuisine">Cuisine:</label>
             <input type="text" id="cuisine" name="cuisine" placeholder="e.g., italian, mexican">
-
-
-
 
             <label for="diet">Diet:</label>
             <input type="text" id="diet" name="diet" placeholder="e.g., vegetarian, vegan">
 
-
-
-
             <label for="intolerances">Intolerances:</label>
             <input type="text" id="intolerances" name="intolerances" placeholder="e.g., gluten, dairy">
-
-
-
 
             <label for="includeIngredients">Include Ingredients:</label>
             <input type="text" id="includeIngredients" name="includeIngredients" placeholder="e.g., tomato, cheese">
 
-
-
-
             <label for="excludeIngredients">Exclude Ingredients:</label>
             <input type="text" id="excludeIngredients" name="excludeIngredients" placeholder="e.g., eggs, nuts">
-
-
-
 
             <button type="submit">Find Recipes</button>
         </form>
@@ -132,10 +41,8 @@
         document.getElementById("recipeForm").addEventListener("submit", async function(event) {
             event.preventDefault(); // Prevent the form from refreshing the page
 
-
             const resultsDiv = document.getElementById("results");
             resultsDiv.innerHTML = "<p>Loading recipes...</p>";
-
 
             try {
                 const params = new URLSearchParams();
@@ -170,7 +77,6 @@
                         const recipeDiv = document.createElement("div");
                         recipeDiv.classList.add("recipe");
 
-
                         recipeDiv.innerHTML = `
                             <h3>${recipe.title}</h3>
                             <img src="${recipe.image}" alt="${recipe.title}">
@@ -186,11 +92,9 @@
             }
         });
 
-
         async function fetchRecipeDetails(recipeId) {
             const resultsDiv = document.getElementById("results");
             resultsDiv.innerHTML = "<p>Loading recipe details...</p>";
-
 
             try {
                 const response = await fetch(`/api/details/${recipeId}`);
@@ -200,11 +104,18 @@
                 }
 
                 const recipe = await response.json();
+                let ingredientsList = '';
+                if (Array.isArray(recipe.extendedIngredients) && recipe.extendedIngredients.length > 0) {
+                    ingredientsList = `<ul>` + recipe.extendedIngredients.map(ing => `<li>${ing.original}</li>`).join('') + `</ul>`;
+                } else {
+                    ingredientsList = '<p>No ingredients data available.</p>';
+                }
                 resultsDiv.innerHTML = `
                     <h2>${recipe.title}</h2>
                     <img src="${recipe.image}" alt="${recipe.title}">
-                    <p><strong>Servings:</strong> ${recipe.servings}</p>
                     <p><strong>Ready in:</strong> ${recipe.readyInMinutes} minutes</p>
+                    <p><strong>Servings:</strong> ${recipe.servings}</p>
+                    <p><strong>Ingredients:</strong> ${ingredientsList}</p>
                     <p><strong>Instructions:</strong> ${recipe.instructions || "No instructions available."}</p>
                     <button onclick="window.location.reload()">Go Back</button>
                 `;

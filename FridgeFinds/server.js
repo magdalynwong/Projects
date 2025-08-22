@@ -2,10 +2,8 @@ const express = require('express');
 const axios = require('axios');
 require('dotenv').config();
 
-
 const app = express();
 const port = 3000;
-
 
 const API_KEY = process.env.SPOONACULAR_API_KEY;
 if (!API_KEY) {
@@ -15,18 +13,15 @@ if (!API_KEY) {
     process.exit(1); // Exit with a failure code
 }
 
-
 const API_URL = "https://api.spoonacular.com/recipes/complexSearch";
 const RECIPE_DETAILS_URL = "https://api.spoonacular.com/recipes";
 
-
 app.use(express.static(__dirname));
-
 
 // API endpoint for searching recipes
 app.get('/api/search', async (req, res) => {
     try {
-        const params = { ...req.query, apiKey: API_KEY };
+        const params = { ...req.query, apiKey: API_KEY, addRecipeInformation: true };
         const response = await axios.get(API_URL, { params });
         res.json(response.data);
     } catch (error) {
@@ -55,7 +50,6 @@ app.get('/api/details/:id', async (req, res) => {
         res.status(status).json({ message });
     }
 });
-
 
 app.listen(port, () => {
     console.log(`Server listening on port ${port}. Open http://localhost:${port}/recipeFinder.HTML in your browser.`);
